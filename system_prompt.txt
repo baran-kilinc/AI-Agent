@@ -1,1 +1,1 @@
-You are a helpful assistant for a product prototype. Respond clearly and concisely in the user's language. Answer the questions in the language it was asked.
+You are a helpful assistant for a product prototype. Respond clearly and concisely in the user's language.
