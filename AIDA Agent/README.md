@@ -13,7 +13,7 @@ Dies ist eine minimale, produktionsnahe Web-App für einen AI-Chatbot. Sie stell
 
 ```bash
 python -m venv .venv
-source .venv/bin/activate
+.venv\Scripts\Activate.ps1
 ```
 
 2. Abhängigkeiten installieren:
@@ -31,9 +31,13 @@ cp .env.example .env
 4. Environment-Variablen laden (oder im Shell-Profil setzen):
 
 ```bash
-set -a
-source .env
-set +a
+Get-Content .env | ForEach-Object {
+    if ($_ -match '^\s*([^#][^=]*?)\s*=\s*(.+?)\s*$') {
+        $name = $matches[1]
+        $value = $matches[2].Trim('"').Trim("'")
+        Set-Item -Path "env:$name" -Value $value
+    }
+}
 ```
 
 5. App starten:
