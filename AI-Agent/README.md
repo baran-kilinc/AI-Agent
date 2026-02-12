@@ -7,6 +7,14 @@ Dies ist eine minimale, produktionsnahe Web-App für einen AI-Chatbot. Sie stell
 - Python 3.10+
 - (Optional) Docker + Docker Compose
 
+## Datenbankvorbereitunh
+```bash
+pip install chromadb sentence-transformers
+python prepare_aida_stream.py
+python create_vector_db.py
+
+```
+
 ## Setup (lokal, ohne Docker)
 
 1. Virtuelle Umgebung erstellen und aktivieren:
