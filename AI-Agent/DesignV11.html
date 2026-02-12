@@ -1,0 +1,1781 @@
+<!DOCTYPE html>
+<html lang="de">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChatGPT Klon</title>
+    <!-- GSAP CDN eklendi -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollToPlugin.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0f3360;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            color: #333;
+            user-select: none;
+        }
+
+        .header {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            width: 100% !important;
+            padding: 10px 20px !important;
+            display: flex !important;
+            align-items: flex-start !important;
+            flex-direction: column !important;
+            gap: 5px !important;
+            background: #0f3360;
+            z-index: 9998 !important;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1) !important;
+            height: 160px !important;
+            /* 200px'den 160px'e düşür */
+            max-height: 40vh !important;
+            /* Maksimum yükseklik ekle */
+            overflow-y: auto !important;
+            /* Scroll özelliği ekle */
+        }
+
+        /* Labels container'a maksimum yükseklik ve scroll ekle */
+        /* Scope input'u küçült */
+        .scope-input {
+            background: #e5e5e5;
+            border: none;
+            border-radius: 25px;
+            padding: 15px 25px !important;
+            /* ESKİ BOYUT */
+            font-size: 16px !important;
+            /* ESKİ BOYUT */
+            width: 100%;
+            outline: none;
+            font-weight: 500;
+            color: #333;
+            min-height: 50px !important;
+            /* ESKİ BOYUT */
+            max-height: 50px !important;
+            resize: none !important;
+            font-family: inherit;
+            flex-shrink: 0;
+        }
+
+        /* Labels container'a scroll ekle ve yüksekliği sınırla */
+        .labels-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px !important;
+            /* ESKİ GAP */
+            min-height: 5px;
+            padding: 0;
+            flex: 1 !important;
+            overflow-y: auto !important;
+            overflow-x: hidden !important;
+            max-height: 60px !important;
+            padding-right: 5px !important;
+            /* Scroll bar için yer */
+        }
+
+        .scope-input::placeholder {
+            color: #666;
+        }
+
+        .label-tag {
+            background: #4f46e5;
+            color: white;
+            padding: 6px 12px !important;
+            /* ESKİ BOYUT */
+            border-radius: 20px !important;
+            /* ESKİ BOYUT */
+            font-size: 14px !important;
+            /* ESKİ BOYUT */
+            display: flex;
+            align-items: center;
+            gap: 8px !important;
+            /* ESKİ BOYUT */
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            flex-shrink: 0;
+            /* Küçülmesin */
+            max-width: 200px !important;
+            /* UZUN LABEL'LAR İÇİN */
+            min-width: fit-content !important;
+            position: relative !important;
+        }
+
+        /* Label text'i truncate yap */
+        .label-tag span:first-child {
+            white-space: nowrap !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+            max-width: 150px !important;
+            /* Remove button için yer bırak */
+            display: block !important;
+        }
+
+        .label-tag .remove-btn {
+            background: rgba(255, 255, 255, 0.3);
+            border: none;
+            border-radius: 50%;
+            width: 18px !important;
+            /* ESKİ BOYUT */
+            height: 18px !important;
+            /* ESKİ BOYUT */
+            display: flex !important;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 14px !important;
+            /* ESKİ BOYUT */
+            font-weight: bold;
+            color: white;
+            transition: background 0.2s;
+            line-height: 1;
+            flex-shrink: 0 !important;
+            /* ASLA küçülmesin */
+            position: absolute !important;
+            /* Absolute position */
+            right: 6px !important;
+            /* Sağda sabit yer */
+            top: 50% !important;
+            transform: translateY(-50%) !important;
+        }
+
+        .label-tag .remove-btn:hover {
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+        /* Main content padding'i header yüksekliğine göre ayarla */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            padding: 180px 40px 20px !important;
+            /* Biraz daha fazla padding */
+            margin-top: 0 !important;
+        }
+
+        /* Scroll bar'ları daha ince yap */
+        .labels-container::-webkit-scrollbar {
+            width: 4px !important;
+            /* Daha ince */
+        }
+
+        .labels-container::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 2px;
+        }
+
+        .labels-container::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.4);
+            border-radius: 2px;
+        }
+
+        .labels-container::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.6);
+        }
+
+        .header::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .header::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+        }
+
+        .header::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 3px;
+        }
+
+
+        .input-container {
+            position: fixed !important;
+            bottom: 20px !important;
+            left: 50% !important;
+            transform: translateX(-50%) !important;
+            width: 70% !important;
+            max-width: 700px !important;
+            z-index: 99999 !important;
+            background: transparent !important;
+        }
+
+        .prompt-input {
+            width: 100%;
+            background: #d1d5db;
+            border: none;
+            border-radius: 25px;
+            padding: 15px 50px 15px 25px;
+            /* Sağdaki padding'i 60px -> 50px yaptık */
+            font-size: 16px;
+            outline: none;
+            color: #333;
+            resize: none;
+            min-height: 50px;
+            max-height: 200px;
+            box-sizing: border-box;
+            /* Ekledik, tam width için */
+        }
+
+        .prompt-input:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            background: #f3f4f6;
+        }
+
+        .send-button {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: #6b7280;
+            border: none;
+            border-radius: 50%;
+            width: 35px;
+            height: 35px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .send-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background: #9ca3af !important;
+        }
+
+        .send-button:disabled:hover {
+            background: #9ca3af !important;
+        }
+
+        .send-button.active {
+            background: #10b981;
+        }
+
+        .send-button svg {
+            width: 16px;
+            height: 16px;
+            fill: white;
+        }
+
+        /* Chat area'ya alt boşluk ver ki input'la çakışmasın */
+        .chat-area {
+            flex: 1;
+            padding: 20px 0;
+            overflow-y: auto;
+            margin-bottom: 100px !important;
+            margin-top: 0 !important;
+            /* Üst margin'i kaldır */
+            user-select: text;
+        }
+
+
+
+        .message-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            /* Burada boşluğu azaltabilirsin */
+            margin-bottom: 16px;
+            width: 100%;
+        }
+
+        .ai-message-row {
+            justify-content: flex-start;
+            gap: 10px;
+        }
+
+        .user-message-row {
+            justify-content: flex-end;
+            /* Avatar ve balonun sırasını ters çevirir */
+            gap: 6px;
+            /* Boşluğu daha da azaltmak için */
+        }
+
+        .message-avatar img {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 1px solid #e2e8f0;
+            background: #fff;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.09);
+            display: block;
+            margin: 0;
+            /* Avatarın etrafındaki boşluk kalksın */
+        }
+
+        .message-bubble {
+            max-width: 100%;
+            /* 70% → 100% */
+            min-width: 60px;
+            width: fit-content;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            border-radius: 18px;
+            border: 1px solid #e2e8f0;
+            padding: 0;
+            transition: background 0.2s;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .user-message {
+            background: #89dbfe;
+            color: #0f172a;
+            border-right: 3px solid #38bdf8;
+
+        }
+
+        .ai-message {
+            max-width: 100%;
+            background: #f3f4f6;
+            color: #334155;
+            border-left: 3px solid #94a3b8;
+        }
+
+        .message-text {
+            padding: 12px 20px;
+            word-break: break-word;
+            font-size: 1rem;
+            text-align: left;
+            /* Hem AI hem user için soldan başlasın */
+        }
+
+
+
+        .message.full-width {
+            max-width: 70%;
+            width: 100%;
+        }
+
+        /* Typing indicator styles */
+        .typing-indicator {
+            background: #f3f4f6;
+            color: #333;
+            margin-right: auto;
+            margin-bottom: 20px;
+            padding: 15px 20px;
+            border-radius: 15px;
+            max-width: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .typing-dots {
+            display: flex;
+            gap: 4px;
+        }
+
+        .typing-dots span {
+            width: 8px;
+            height: 8px;
+            background: #666;
+            border-radius: 50%;
+            display: block;
+        }
+
+        .highlighted-text {
+            background-color: #fef08a !important;
+            padding: 2px 4px;
+            border-radius: 3px;
+            cursor: grab;
+            border: 1px solid #f59e0b;
+            position: relative;
+        }
+
+        .highlighted-text:active {
+            cursor: grabbing;
+        }
+
+        .word-highlight {
+            background-color: #fef08a !important;
+            padding: 1px 2px;
+            border-radius: 2px;
+            border: 1px solid #f59e0b;
+        }
+
+        .selection-highlight {
+            background-color: #93c5fd !important;
+            padding: 1px 2px;
+            border-radius: 2px;
+            border: 1px solid #3b82f6;
+        }
+
+        .auto-label-notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #10b981;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            z-index: 10000;
+            opacity: 0;
+            transform: translateX(100%);
+        }
+
+        .drag-feedback {
+            position: fixed;
+            background: #4f46e5;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 14px;
+            pointer-events: none;
+            z-index: 10000;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            transform: translateX(-50%) translateY(-100%);
+        }
+
+        .scope-container.drag-over {
+            background: rgba(79, 70, 229, 0.1);
+            border: 2px dashed #4f46e5;
+            border-radius: 25px;
+            transform: scale(1.02);
+            transition: all 0.2s ease;
+        }
+
+        .drop-zone-indicator {
+            position: absolute;
+            top: -5px;
+            left: -5px;
+            right: -5px;
+            bottom: -5px;
+            background: rgba(79, 70, 229, 0.1);
+            border: 2px dashed #4f46e5;
+            border-radius: 30px;
+            display: none;
+            pointer-events: none;
+        }
+
+        /* SVG Response Panel Styles */
+        .svg-response-panel {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            margin-top: 15px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            width: auto;
+            max-width: 1200px;
+            /* 800 yerine 1200 yaptık */
+            margin-top: 0;
+        }
+
+        .svg-panel-header {
+            background: #475569;
+            color: white;
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .svg-panel-header:hover {
+            background: #334155;
+        }
+
+        .svg-panel-title {
+            font-weight: 600;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .svg-panel-title::before {
+            content: "📊";
+            font-size: 16px;
+        }
+
+        .svg-panel-toggle {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 18px;
+            cursor: pointer;
+            transform: rotate(0deg);
+            transition: transform 0.3s ease;
+        }
+
+        .svg-panel-content {
+            padding: 0;
+            height: 0;
+            overflow: hidden;
+        }
+
+        .svg-container {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            min-height: 200px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin: 20px;
+            min-width: 200px;
+            max-width: 1200px;
+            /* 800 yerine 1200 yaptık */
+            width: auto;
+            box-sizing: border-box;
+        }
+
+        .svg-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 10px;
+        }
+
+        .svg-description {
+            font-size: 14px;
+            color: #64748b;
+            margin-top: 10px;
+            line-height: 1.5;
+        }
+
+        .svg-download-btn {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: background 0.2s;
+        }
+
+        .svg-download-btn:hover {
+            background: #2563eb;
+        }
+
+        /* Header'ın yüksekliğini sabit tut ve label'ları scroll yap */
+        .header {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            width: 100% !important;
+            padding: 10px 20px !important;
+            display: flex !important;
+            align-items: flex-start !important;
+            flex-direction: column !important;
+            gap: 5px !important;
+            background: #0f3360;
+            z-index: 9998 !important;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1) !important;
+            height: 180px !important;
+            /* SABİT YÜKSEKLİK */
+            max-height: 180px !important;
+            overflow: hidden !important;
+            /* Overflow'u hidden yap */
+        }
+
+        /* Scope container'ı da sabit yükseklik yap */
+        .scope-container {
+            width: 100% !important;
+            max-width: none !important;
+            position: relative !important;
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 15px !important;
+            /* Eski gap */
+            height: 100% !important;
+            overflow: hidden !important;
+        }
+
+
+
+        /* Scroll to bottom button */
+        .scroll-to-bottom-btn {
+            position: fixed !important;
+            bottom: 90px !important;
+            /* Input container'ın 50px üstünde */
+            left: 50% !important;
+            transform: translateX(-50%) !important;
+            width: 40px;
+            height: 40px;
+            background: rgba(107, 114, 128, 0.9);
+            border: none;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 50000 !important;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        .scroll-to-bottom-btn.visible {
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+        }
+
+        .scroll-to-bottom-btn:hover {
+            background: rgba(107, 114, 128, 1);
+            transform: translateX(-50%) scale(1.1) !important;
+        }
+
+        .scroll-to-bottom-btn svg {
+            width: 20px;
+            height: 20px;
+            fill: white;
+        }
+
+
+        /* Mobile CSS'i tamamen değiştir */
+        @media (max-width: 768px) {
+            .header {
+                height: 140px !important;
+                max-height: 140px !important;
+                padding: 8px 15px !important;
+            }
+
+            .labels-container {
+                max-height: 50px !important;
+            }
+
+            .scroll-to-bottom-btn {
+                bottom: 80px;
+                /* Mobile'da input'ın 50px üstünde */
+            }
+
+            .scope-input {
+                min-height: 45px !important;
+                max-height: 45px !important;
+                padding: 12px 20px !important;
+                font-size: 14px !important;
+            }
+
+            .prompt-input {
+                font-size: 14px;
+                padding: 12px 40px 12px 15px;
+            }
+
+            .message {
+                max-width: 85%;
+                padding: 12px 15px;
+            }
+
+            .auto-label-notification {
+                top: 10px;
+                right: 10px;
+                left: 10px;
+                font-size: 12px;
+                padding: 10px 15px;
+            }
+
+            /* EN ÖNEMLİSİ: Mobile input container */
+            .input-container {
+                position: fixed !important;
+                bottom: 15px !important;
+                left: 50% !important;
+                transform: translateX(-50%) !important;
+                width: calc(100% - 30px) !important;
+                /* Daha geniş yap */
+                max-width: none !important;
+                z-index: 99999 !important;
+                /* En yüksek z-index */
+            }
+
+            .chat-area {
+                margin-top: 10px !important;
+                margin-bottom: 90px !important;
+            }
+
+            .bubble-svg-container {
+                max-width: 95%;
+            }
+
+            .message-row {
+                gap: 5px;
+            }
+
+            .user-message-row {
+                gap: 3px;
+            }
+
+            .label-tag {
+                max-width: 150px !important;
+                /* Mobile'da daha küçük */
+            }
+
+            .label-tag .remove-btn {
+                width: 14px !important;
+                height: 14px !important;
+                font-size: 10px !important;
+            }
+
+            .label-tag span:first-child {
+                max-width: 110px !important;
+            }
+
+            .main-content {
+                padding: 160px 20px 20px !important;
+            }
+        }
+
+        .background-image-layer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -1 !important;
+            pointer-events: none;
+            opacity: 0.15;
+            /* %80 transparanlık */
+            background: url('BMW.png') center center / cover no-repeat;
+            background-size: 600px auto;
+            /* Tam ekran değil, 600px genişlikte */
+        }
+
+        body>*:not(.background-image-layer) {
+            position: relative;
+            z-index: 1;
+        }
+
+        .message-icon img {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            object-fit: cover;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.09);
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            display: block;
+        }
+
+        .bubble-svg-container {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 10px;
+            /* bubble ile svg arasında boşluk */
+            width: auto;
+            max-width: 100%;
+        }
+
+        /* Balon sadece içeriği kadar genişlik */
+        .message-bubble {
+            max-width: 100%;
+            width: fit-content;
+            min-width: 60px;
+            box-sizing: border-box;
+        }
+
+        /* AI balonu */
+        .ai-message-row .message-bubble {
+            width: fit-content;
+            max-width: 70vw;
+            /* çok taşmasın */
+        }
+
+
+
+        .message-bubble-container {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            width: fit-content;
+            max-width: 70vw;
+            margin-bottom: 0;
+        }
+
+        .svg-panel-outer-container {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            width: auto;
+            max-width: 800px;
+            margin-top: 10px;
+        }
+
+
+
+
+
+        .chat-controls {
+            gap: 5px;
+            margin-right: 10px;
+        }
+
+        .chat-control-btn {
+            width: 35px;
+            height: 35px;
+            border-radius: 10px;
+        }
+
+        .chat-control-btn svg {
+            width: 18px;
+            height: 18px;
+        }
+
+
+        /* Chat control buttons */
+        .chat-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-right: 15px;
+            align-self: flex-start;
+        }
+
+        .chat-control-btn {
+            width: 30px;
+            height: 30px;
+            background: rgba(75, 85, 99, 0.9);
+            border: none;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .chat-control-btn:hover {
+            background: rgba(75, 85, 99, 1);
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .chat-control-btn:active {
+            transform: scale(0.95);
+        }
+
+        .chat-control-btn svg {
+            width: 20px;
+            height: 20px;
+            fill: white;
+        }
+
+        .clear-chat-btn svg {
+            fill: #ef4444;
+            /* Kırmızı renk */
+        }
+
+        .new-chat-btn svg {
+            fill: #10b981;
+            /* Yeşil renk */
+        }
+    </style>
+</head>
+
+<body>
+
+
+    <body>
+        <div class="background-image-layer"></div>
+        <div class="header">
+            <div style="display: flex; align-items: flex-start; gap: 0; width: 100%;">
+                <!-- Chat Control Buttons -->
+                <div class="chat-controls">
+                    <button class="chat-control-btn clear-chat-btn" id="clearChatBtn" title="Chat löschen">
+                        <svg viewBox="0 0 24 24">
+                            <path
+                                d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z" />
+                        </svg>
+                    </button>
+                    <button class="chat-control-btn new-chat-btn" id="newChatBtn" title="Neuer Chat">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z" />
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Scope Container -->
+                <div class="scope-container" id="scopeContainer" style="flex: 1;">
+                    <div class="drop-zone-indicator" id="dropZoneIndicator"></div>
+                    <textarea class="scope-input" id="scopeInput" placeholder="Scope..." rows="2"></textarea>
+                    <div class="labels-container" id="labelsContainer">
+                        <!-- Labels werden hier angezeigt -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="chat-area" id="chatArea">
+                <!-- Chat-Nachrichten werden hier hinzugefügt -->
+            </div>
+            <!-- INPUT CONTAINER'I BURADAN ÇIKAR! -->
+        </div>
+
+
+
+        <!-- Scroll to bottom button -->
+        <div class="scroll-to-bottom-btn" id="scrollToBottomBtn">
+            <svg viewBox="0 0 24 24">
+                <path d="M7,10L12,15L17,10H7Z" />
+            </svg>
+        </div>
+
+
+        <!-- INPUT CONTAINER'I BURAYA TAŞI - MAIN-CONTENT DIŞINA! -->
+        <div class="input-container">
+            <textarea class="prompt-input" id="promptInput" placeholder="Ihre Eingabe..." rows="1"></textarea>
+            <button class="send-button" id="sendButton">
+                <svg viewBox="0 0 24 24">
+                    <path d="M2,21L23,12L2,3V10L17,12L2,14V21Z" />
+                </svg>
+            </button>
+        </div>
+    </body>
+
+
+
+    <script>
+        const chatArea = document.getElementById('chatArea');
+        const promptInput = document.getElementById('promptInput');
+        const sendButton = document.getElementById('sendButton');
+        const scopeContainer = document.getElementById('scopeContainer');
+        const scopeInput = document.getElementById('scopeInput');
+        const labelsContainer = document.getElementById('labelsContainer');
+        const dropZoneIndicator = document.getElementById('dropZoneIndicator');
+        let labels = [];
+        let currentTypingIndicator = null;
+        let isUserScrolledUp = false;
+        let isAutoScrolling = false;
+        const scrollToBottomBtn = document.getElementById('scrollToBottomBtn');
+        let isAtBottom = true;
+
+
+        // Kullanıcının manuel scroll yaptığını algıla
+        // Kullanıcının manuel scroll yaptığını algıla
+        // Kullanıcının manuel scroll yaptığını algıla
+        function handleUserScroll() {
+            if (isAutoScrolling) return;
+
+            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+            const windowHeight = window.innerHeight;
+            const documentHeight = document.documentElement.scrollHeight;
+
+            // Kullanıcı en alttan 100px yukarıdaysa "yukarıda" say
+            isUserScrolledUp = (scrollTop + windowHeight + 100) < documentHeight;
+
+            // Button'u göster/gizle
+            if (isUserScrolledUp) {
+                scrollToBottomBtn.classList.add('visible');
+            } else {
+                scrollToBottomBtn.classList.remove('visible');
+            }
+        }
+
+
+        function autoScrollToBottom() {
+            if (isUserScrolledUp) return;
+
+            isAutoScrolling = true;
+
+            // Sadece window scroll et
+            gsap.to(window, {
+                duration: 1,
+                scrollTo: { y: "max" },
+                ease: "power2.out",
+                onComplete: () => {
+                    isAutoScrolling = false;
+                }
+            });
+        }
+
+
+        function adjustTextareaHeight(textarea) {
+            textarea.style.height = 'auto';
+            textarea.style.height = Math.min(textarea.scrollHeight, 200) + 'px';
+
+            // AI yanıt veriyorsa aktif buton gösterme
+            if (textarea.value.trim() && !isAIResponding) {
+                sendButton.classList.add('active');
+            } else {
+                sendButton.classList.remove('active');
+            }
+        }
+
+        function handleKeyPress(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                if (!isAIResponding) { // AI yanıt vermiyorsa gönder
+                    sendMessage();
+                }
+            }
+        }
+
+        function showTypingIndicator() {
+            const typingDiv = document.createElement('div');
+            typingDiv.className = 'typing-indicator';
+            typingDiv.innerHTML = `<div class="typing-dots"><span></span><span></span><span></span></div>`;
+            chatArea.appendChild(typingDiv);
+            currentTypingIndicator = typingDiv;
+            autoScrollToBottom();
+            gsap.to(".typing-dots span", { y: -8, duration: 0.6, ease: "power2.inOut", stagger: 0.2, repeat: -1, yoyo: true });
+            return typingDiv;
+        }
+
+        function removeTypingIndicator() {
+            if (currentTypingIndicator) {
+                currentTypingIndicator.remove();
+                currentTypingIndicator = null;
+            }
+        }
+
+        let isAIResponding = false; // Yeni değişken ekleyin
+
+        function sendMessage() {
+            const message = promptInput.value.trim();
+            if (!message || isAIResponding) return;
+
+            isAIResponding = true;
+
+            addMessage(message, 'user');
+
+            // USER MESAJI GÖNDERİLDİKTEN HEMEN SONRA SCROLL YAP
+            // USER MESAJI GÖNDERİLDİKTEN HEMEN SONRA SCROLL YAP
+            setTimeout(() => {
+                isUserScrolledUp = false;
+                isAutoScrolling = true;
+
+                gsap.to(window, {
+                    duration: 1,
+                    scrollTo: { y: "max" },
+                    ease: "power2.out",
+                    onComplete: () => {
+                        isAutoScrolling = false;
+                    }
+                });
+            }, 100);
+
+            promptInput.value = '';
+            adjustTextareaHeight(promptInput);
+
+            promptInput.disabled = true;
+            sendButton.disabled = true;
+            sendButton.classList.remove('active');
+
+            showTypingIndicator();
+
+            setTimeout(() => {
+                removeTypingIndicator();
+                const responses = [
+                    "Das ist eine großartige Frage! Ich versuche, Ihnen zu helfen.",
+                    "Verstehe. Dazu kann ich Ihnen folgendes empfehlen:",
+                    "Lassen Sie mich darüber nachdenken. Es gibt mehrere Optionen:",
+                    "Natürlich! In diesem Fall können Sie folgendes tun:",
+                    "Interessante Perspektive. Sie könnten diesen Ansatz versuchen:",
+                    "Gerne helfe ich Ihnen dabei. Hier sind einige Vorschläge:",
+                    "Das ist ein wichtiger Punkt. Betrachten Sie diese Möglichkeiten:",
+                    "Ausgezeichnet! Hier ist, was ich vorschlagen würde:",
+                    "Ich verstehe Ihre Anfrage. Lassen Sie mich eine detaillierte Antwort geben.",
+                    "Das ist ein interessantes Thema. Hier sind meine Gedanken dazu:",
+                    "Perfekt! Hier ist meine Analyse zu diesem wichtigen Punkt.",
+                    "Sehr gute Überlegung. Ich kann Ihnen dabei verschiedene Ansätze vorschlagen."
+                ];
+                const randomResponse = responses[Math.floor(Math.random() * responses.length)];
+                const messageDiv = addMessage(randomResponse, 'ai');
+
+                isAIResponding = false;
+                promptInput.disabled = false;
+                sendButton.disabled = false;
+                promptInput.focus();
+
+                if (Math.random() > 0.3) {
+                    setTimeout(() => { addSVGToMessage(messageDiv); }, 1000);
+                }
+            }, 1000 + Math.random() * 1000);
+        }
+
+        function addMessage(text, sender) {
+            const rowDiv = document.createElement('div');
+            rowDiv.className = `message-row ${sender}-message-row`;
+            const avatarDiv = document.createElement('div');
+            avatarDiv.className = 'message-avatar';
+            if (sender === 'ai') {
+                avatarDiv.innerHTML = '<img src="kikopf.png" alt="AI" />';
+            } else {
+                avatarDiv.innerHTML = '<img src="michaelschnedier.png" alt="User" />';
+            }
+            const bubbleSvgContainer = document.createElement('div');
+            bubbleSvgContainer.className = 'bubble-svg-container';
+            const bubbleDiv = document.createElement('div');
+            bubbleDiv.className = `message-bubble ${sender}-message`;
+            const textDiv = document.createElement('div');
+            textDiv.className = 'message-text';
+            textDiv.textContent = text;
+            bubbleDiv.appendChild(textDiv);
+            bubbleSvgContainer.appendChild(bubbleDiv);
+            if (sender === 'ai') {
+                rowDiv.appendChild(avatarDiv);
+                rowDiv.appendChild(bubbleSvgContainer);
+            } else {
+                rowDiv.appendChild(bubbleSvgContainer);
+                rowDiv.appendChild(avatarDiv);
+            }
+            gsap.set(rowDiv, { opacity: 0, y: 30, scale: 1 });
+            chatArea.appendChild(rowDiv);
+            gsap.to(rowDiv, { opacity: 1, y: 0, scale: 1, duration: 0.6, ease: "back.out(1.7)" });
+            // Kullanıcı mesaj gönderince her zaman en alta scroll yap
+            // Sadece kullanıcı yukarıda değilse scroll yap
+            // Mesaj animasyonu tamamlandıktan sonra scroll yap
+            setTimeout(() => {
+                if (sender === 'user') {
+                    // Kullanıcı mesajında her zaman scroll yap
+                    isUserScrolledUp = false;
+                    isAutoScrolling = true;
+                    gsap.to(chatArea, {
+                        scrollTop: chatArea.scrollHeight,
+                        duration: 1,
+                        ease: "power2.out",
+                        onComplete: () => {
+                            isAutoScrolling = false;
+                        }
+                    });
+                } else {
+                    // AI mesajında sadece kullanıcı yukarıda değilse scroll yap
+                    autoScrollToBottom();
+                }
+            }, 700); // Mesaj animasyonu bitince (600ms + 100ms buffer)
+            return rowDiv;
+        }
+
+
+
+        function showAutoLabelNotification(text) {
+            const notification = document.createElement('div');
+            notification.className = 'auto-label-notification';
+            notification.textContent = `Label hinzugefügt: "${text}"`;
+
+            gsap.set(notification, { x: 300, opacity: 0 });
+            document.body.appendChild(notification);
+
+            // Giriş animasyonu
+            gsap.to(notification, {
+                x: 0,
+                opacity: 1,
+                duration: 0.5,
+                ease: "back.out(1.7)"
+            });
+
+            // Çıkış animasyonu
+            gsap.to(notification, {
+                x: 300,
+                opacity: 0,
+                duration: 0.3,
+                delay: 2.5,
+                ease: "power2.in",
+                onComplete: () => notification.remove()
+            });
+        }
+
+        // addLabel ve removeLabel fonksiyonlarından updateMainContentPadding() çağrılarını kaldırın
+        function addLabel(text, isAutoAdded = false) {
+            if (labels.includes(text)) {
+                return;
+            }
+
+            labels.push(text);
+
+            const labelDiv = document.createElement('div');
+            labelDiv.className = 'label-tag';
+
+            const labelText = document.createElement('span');
+            labelText.textContent = text;
+
+            const removeBtn = document.createElement('button');
+            removeBtn.className = 'remove-btn';
+            removeBtn.innerHTML = '×';
+            removeBtn.onclick = function () {
+                removeLabel(text, labelDiv);
+            };
+
+            labelDiv.appendChild(labelText);
+            labelDiv.appendChild(removeBtn);
+
+            gsap.set(labelDiv, {
+                opacity: 0,
+                scale: 0,
+                rotation: -10
+            });
+
+            labelsContainer.appendChild(labelDiv);
+
+            gsap.to(labelDiv, {
+                opacity: 1,
+                scale: 1,
+                rotation: 0,
+                duration: 0.5,
+                ease: "elastic.out(1, 0.3)",
+                delay: isAutoAdded ? 0.3 : 0
+                // updateMainContentPadding() çağrısını kaldır
+            });
+
+            if (isAutoAdded) {
+                showAutoLabelNotification(text);
+            }
+        }
+
+
+        // Label kaldırıldığında da padding'i güncelle
+
+        function removeLabel(text, labelElement) {
+            gsap.to(labelElement, {
+                opacity: 0,
+                scale: 0,
+                rotation: 10,
+                duration: 0.3,
+                ease: "power2.in",
+                onComplete: () => {
+                    labels = labels.filter(label => label !== text);
+                    labelElement.remove();
+                    // updateMainContentPadding() çağrısını kaldır
+                }
+            });
+
+            const highlightedElements = document.querySelectorAll('.word-highlight, .selection-highlight');
+            highlightedElements.forEach(element => {
+                if (element.textContent.trim() === text) {
+                    const parent = element.parentNode;
+                    parent.replaceChild(document.createTextNode(element.textContent), element);
+                    parent.normalize();
+                }
+            });
+        }
+
+        // Kelime bazlı seçim için utility fonksiyonlar
+        function getWordBoundaries(text, position) {
+            const wordRegex = /[a-zA-ZäöüÄÖÜß0-9]/;
+            let start = position;
+            let end = position;
+
+            while (start > 0 && wordRegex.test(text[start - 1])) {
+                start--;
+            }
+
+            while (end < text.length && wordRegex.test(text[end])) {
+                end++;
+            }
+
+            return { start, end };
+        }
+
+        function expandSelectionToWords(range) {
+            const startContainer = range.startContainer;
+            const endContainer = range.endContainer;
+
+            if (startContainer.nodeType === Node.TEXT_NODE) {
+                const startText = startContainer.textContent;
+                const startBoundaries = getWordBoundaries(startText, range.startOffset);
+                range.setStart(startContainer, startBoundaries.start);
+            }
+
+            if (endContainer.nodeType === Node.TEXT_NODE) {
+                const endText = endContainer.textContent;
+                const endBoundaries = getWordBoundaries(endText, range.endOffset);
+                range.setEnd(endContainer, endBoundaries.end);
+            }
+
+            return range;
+        }
+
+        function highlightSelection(range, text) {
+            try {
+                const span = document.createElement('span');
+                span.className = 'selection-highlight';
+                span.setAttribute('draggable', 'true');
+                span.setAttribute('data-text', text);
+
+                range.surroundContents(span);
+
+                span.addEventListener('dragstart', handleDragStart);
+                span.addEventListener('dragend', handleDragEnd);
+                span.addEventListener('drag', handleDrag);
+
+                return span;
+            } catch (e) {
+                console.log('Seçim vurgulanamadı:', e);
+                return null;
+            }
+        }
+
+
+        // Chat control buttons (sadece görsel, işlevsel değil)
+        document.getElementById('clearChatBtn').addEventListener('click', function () {
+            // Burada sadece visual feedback ver
+            gsap.to(this, {
+                scale: 0.9,
+                duration: 0.1,
+                yoyo: true,
+                repeat: 1,
+                ease: "power2.inOut"
+            });
+
+            console.log('Clear chat button clicked - Functionality not implemented yet');
+        });
+
+        document.getElementById('newChatBtn').addEventListener('click', function () {
+            // Burada sadece visual feedback ver
+            gsap.to(this, {
+                scale: 0.9,
+                duration: 0.1,
+                yoyo: true,
+                repeat: 1,
+                ease: "power2.inOut"
+            });
+
+            console.log('New chat button clicked - Functionality not implemented yet');
+        });
+        // Ana seçim olayı
+        document.addEventListener('mouseup', function (e) {
+            const selection = window.getSelection();
+
+            if (selection.rangeCount > 0 && selection.toString().trim().length > 0) {
+                const range = selection.getRangeAt(0);
+
+                if (!chatArea.contains(range.commonAncestorContainer)) {
+                    return;
+                }
+
+                const expandedRange = expandSelectionToWords(range.cloneRange());
+                const selectedText = expandedRange.toString().trim();
+
+                if (selectedText && selectedText.length > 0) {
+                    selection.removeAllRanges();
+                    const highlightedSpan = highlightSelection(expandedRange, selectedText);
+
+                    if (highlightedSpan) {
+                        setTimeout(() => {
+                            addLabel(selectedText, true);
+                        }, 300);
+                    }
+                }
+            }
+        });
+
+        // Drag & Drop olayları
+        function createDragFeedback(text, x, y) {
+            const dragFeedback = document.createElement('div');
+            dragFeedback.className = 'drag-feedback';
+            dragFeedback.textContent = `"${text}"`;
+            dragFeedback.style.left = x + 'px';
+            dragFeedback.style.top = y + 'px';
+            dragFeedback.id = 'dragFeedback';
+            document.body.appendChild(dragFeedback);
+            return dragFeedback;
+        }
+
+        function updateDragFeedback(x, y) {
+            const dragFeedback = document.getElementById('dragFeedback');
+            if (dragFeedback) {
+                dragFeedback.style.left = x + 'px';
+                dragFeedback.style.top = y + 'px';
+            }
+        }
+
+        function removeDragFeedback() {
+            const dragFeedback = document.getElementById('dragFeedback');
+            if (dragFeedback) {
+                dragFeedback.remove();
+            }
+        }
+
+        function handleDragStart(e) {
+            const dragElement = e.target;
+            const text = e.target.getAttribute('data-text') || e.target.textContent.trim();
+
+            e.dataTransfer.setData('text/plain', text);
+            e.dataTransfer.effectAllowed = 'copy';
+
+            // GSAP animasyonu
+            gsap.to(dragElement, {
+                scale: 1.1,
+                rotation: 5,
+                duration: 0.2,
+                ease: "power2.out"
+            });
+
+            gsap.to(scopeContainer, {
+                scale: 1.02,
+                boxShadow: "0 0 20px rgba(79, 70, 229, 0.3)",
+                duration: 0.3
+            });
+
+            createDragFeedback(text, e.clientX, e.clientY);
+        }
+
+        function handleDrag(e) {
+            updateDragFeedback(e.clientX, e.clientY);
+        }
+
+        function handleDragEnd(e) {
+            removeDragFeedback();
+            scopeContainer.classList.remove('drag-over');
+            dropZoneIndicator.style.display = 'none';
+
+            // Elementi eski haline döndür
+            gsap.to(e.target, {
+                scale: 1,
+                rotation: 0,
+                duration: 0.2,
+                ease: "power2.out"
+            });
+
+            gsap.to(scopeContainer, {
+                scale: 1,
+                boxShadow: "none",
+                duration: 0.3,
+                ease: "back.out(1.7)"
+            });
+        }
+
+        // SVG Functions
+        function createSVGResponsePanel() {
+            const panel = document.createElement('div');
+            panel.className = 'svg-response-panel';
+
+            const header = document.createElement('div');
+            header.className = 'svg-panel-header';
+            header.onclick = toggleSVGPanel;
+
+            const title = document.createElement('div');
+            title.className = 'svg-panel-title';
+            title.textContent = 'SVG Darstellung';
+
+            const toggle = document.createElement('button');
+            toggle.className = 'svg-panel-toggle';
+            toggle.innerHTML = '▼';
+
+            const content = document.createElement('div');
+            content.className = 'svg-panel-content';
+
+            header.appendChild(title);
+            header.appendChild(toggle);
+            panel.appendChild(header);
+            panel.appendChild(content);
+
+            return panel;
+        }
+
+        function toggleSVGPanel(event) {
+            const content = event.currentTarget.parentElement.querySelector('.svg-panel-content');
+            const toggle = event.currentTarget.querySelector('.svg-panel-toggle');
+            const isExpanded = content.style.height !== '0px' && content.style.height !== '';
+
+            if (isExpanded) {
+                // Kapanma animasyonu
+                gsap.to(content, {
+                    height: 0,
+                    duration: 0.4,
+                    ease: "power2.inOut"
+                });
+
+                gsap.to(toggle, {
+                    rotation: 0,
+                    duration: 0.3
+                });
+            } else {
+                // Açılma animasyonu
+                gsap.set(content, { height: 'auto' });
+                const autoHeight = content.offsetHeight;
+                gsap.set(content, { height: 0 });
+
+                gsap.to(content, {
+                    height: autoHeight,
+                    duration: 0.4,
+                    ease: "power2.inOut"
+                });
+
+                gsap.to(toggle, {
+                    rotation: 180,
+                    duration: 0.3
+                });
+            }
+        }
+
+        function generateRandomSVG() {
+            const svgTemplates = [
+                {
+                    title: "Datenfluss Diagramm",
+                    description: "Visualisierung des Datenflusses zwischen verschiedenen Komponenten",
+                    svg: `<svg width="800" height="200" viewBox="0 0 300 200">
+                        <rect x="20" y="30" width="80" height="40" rx="5" fill="#e0f2fe" stroke="#0891b2" stroke-width="2"/>
+                        <text x="60" y="55" text-anchor="middle" font-size="12" fill="#0891b2">Input</text>
+                        <rect x="110" y="80" width="80" height="40" rx="5" fill="#fef3c7" stroke="#d97706" stroke-width="2"/>
+                        <text x="150" y="105" text-anchor="middle" font-size="12" fill="#d97706">Process</text>
+                        <rect x="200" y="30" width="80" height="40" rx="5" fill="#dcfce7" stroke="#16a34a" stroke-width="2"/>
+                        <text x="240" y="55" text-anchor="middle" font-size="12" fill="#16a34a">Output</text>
+                    </svg>`
+                },
+                {
+                    title: "Statistik Dashboard",
+                    description: "Grafische Darstellung von Leistungskennzahlen und Trends",
+                    svg: `<svg width="800" height="200" viewBox="0 0 300 200">
+                        <rect x="50" y="160" width="30" height="20" fill="#3b82f6"/>
+                        <rect x="90" y="140" width="30" height="40" fill="#06b6d4"/>
+                        <rect x="130" y="120" width="30" height="60" fill="#10b981"/>
+                        <rect x="170" y="100" width="30" height="80" fill="#f59e0b"/>
+                        <rect x="210" y="80" width="30" height="100" fill="#ef4444"/>
+                        <text x="150" y="40" text-anchor="middle" font-size="14" font-weight="bold" fill="#1e293b">Statistiken</text>
+                    </svg>`
+                }
+            ];
+
+            return svgTemplates[Math.floor(Math.random() * svgTemplates.length)];
+        }
+
+        function addSVGToMessage(rowDiv) {
+
+            const allSVGPanels = document.querySelectorAll('.svg-response-panel');
+            allSVGPanels.forEach(panel => {
+                const header = panel.querySelector('.svg-panel-header');
+                const content = panel.querySelector('.svg-panel-content');
+
+                // Eğer panel açıksa (height !== '0px'), kapat
+                if (content.style.height !== '0px' && content.style.height !== '') {
+                    header.click(); // Mevcut kapatma fonksiyonunu tetikle
+                }
+            });
+            // rowDiv: .message-row (AI cevabı)
+            // bubbleDiv: .message-bubble (bul)
+            // SVG paneli bubble'ın altına eklenmeli
+
+            // Önce: bubbleDiv'i bul
+            const bubbleSvgContainer = rowDiv.querySelector('.bubble-svg-container');
+            if (!bubbleSvgContainer) return;
+
+            const svgPanel = createSVGResponsePanel();
+            const content = svgPanel.querySelector('.svg-panel-content');
+            const svgData = generateRandomSVG();
+
+            const container = document.createElement('div');
+            container.className = 'svg-container';
+
+            const title = document.createElement('div');
+            title.className = 'svg-title';
+            title.textContent = svgData.title;
+
+            const svgWrapper = document.createElement('div');
+            svgWrapper.innerHTML = svgData.svg;
+
+            const description = document.createElement('div');
+            description.className = 'svg-description';
+            description.textContent = svgData.description;
+
+            const downloadBtn = document.createElement('button');
+            downloadBtn.className = 'svg-download-btn';
+            downloadBtn.textContent = 'SVG Herunterladen';
+            downloadBtn.onclick = function () {
+                downloadSVG(svgData.svg, svgData.title);
+            };
+
+            container.appendChild(title);
+            container.appendChild(svgWrapper);
+            container.appendChild(description);
+            container.appendChild(downloadBtn);
+            content.appendChild(container);
+
+            // SVG paneli bubble'ın altına ekle
+            bubbleSvgContainer.appendChild(svgPanel);
+
+            // Panel'i otomatik olarak aç
+            setTimeout(() => {
+                svgPanel.querySelector('.svg-panel-header').click();
+
+                // SVG paneli açıldıktan sonra scroll yap
+                setTimeout(() => {
+                    isAutoScrolling = true;
+                    gsap.to(window, {
+                        duration: 1,
+                        scrollTo: { y: "max" },
+                        ease: "power2.out",
+                        onComplete: () => {
+                            isAutoScrolling = false;
+                        }
+                    });
+                }, 500); // Panel animasyonu bitince scroll et
+            }, 500);
+        }
+
+
+        function downloadSVG(svgContent, filename) {
+            const blob = new Blob([svgContent], { type: 'image/svg+xml' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${filename.replace(/\s+/g, '_')}.svg`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        // Drop zone olayları
+        scopeContainer.addEventListener('dragover', function (e) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'copy';
+            scopeContainer.classList.add('drag-over');
+            dropZoneIndicator.style.display = 'block';
+        });
+
+        scopeContainer.addEventListener('dragleave', function (e) {
+            if (!scopeContainer.contains(e.relatedTarget)) {
+                scopeContainer.classList.remove('drag-over');
+                dropZoneIndicator.style.display = 'none';
+            }
+        });
+
+        scopeContainer.addEventListener('drop', function (e) {
+            e.preventDefault();
+            scopeContainer.classList.remove('drag-over');
+            dropZoneIndicator.style.display = 'none';
+
+            const droppedText = e.dataTransfer.getData('text/plain');
+            if (droppedText && droppedText.trim()) {
+                if (!labels.includes(droppedText.trim())) {
+                    addLabel(droppedText.trim(), false);
+                }
+            }
+        });
+
+
+
+        // Scroll to bottom button click
+        scrollToBottomBtn.addEventListener('click', function () {
+            isUserScrolledUp = false;
+            isAutoScrolling = true;
+
+            gsap.to(window, {
+                duration: 1,
+                scrollTo: { y: "max" },
+                ease: "power2.out",
+                onComplete: () => {
+                    isAutoScrolling = false;
+                    scrollToBottomBtn.classList.remove('visible');
+                }
+            });
+        });
+        // Scroll event listener ekle
+        chatArea.addEventListener('scroll', handleUserScroll);
+
+        // Event Listeners
+        promptInput.addEventListener('input', function () {
+            adjustTextareaHeight(this);
+        });
+
+        promptInput.addEventListener('keydown', handleKeyPress);
+
+        sendButton.addEventListener('click', sendMessage);
+
+        scopeInput.addEventListener('input', function () {
+            this.style.height = 'auto';
+            this.style.height = Math.min(this.scrollHeight, 150) + 'px';
+        });
+
+        scopeInput.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                const text = this.value.trim();
+                if (text && !labels.includes(text)) {
+                    addLabel(text, false);
+                    this.value = '';
+                    this.style.height = 'auto';
+                    this.style.height = '50px';
+                }
+            }
+        });
+
+        // Sayfa yükleme animasyonu
+        window.addEventListener('load', function () {
+            const tl = gsap.timeline();
+
+            tl.set([".header", ".main-content"], { opacity: 0, y: 20 })
+                .to(".header", {
+                    opacity: 1,
+                    y: 0,
+                    duration: 0.8,
+                    ease: "power3.out"
+                })
+                .to(".main-content", {
+                    opacity: 1,
+                    y: 0,
+                    duration: 0.6,
+                    ease: "power2.out"
+                }, "-=0.4")
+                .to(".scope-input", {
+                    scale: 1.02,
+                    duration: 0.3,
+                    yoyo: true,
+                    repeat: 1,
+                    ease: "power2.inOut"
+                });
+
+            // Hoş geldin mesajı
+            setTimeout(() => {
+                addMessage("Hallo! Wie kann ich Ihnen helfen? Sie können einzelne Wörter oder ganze Textabschnitte aus unserer Unterhaltung auswählen - alle Wörter werden automatisch als ein Label hinzugefügt!", 'ai');
+            }, 1000);
+        });
+        // Window scroll event listener ekle
+        window.addEventListener('scroll', handleUserScroll);
+        // Hover efektleri
+        document.addEventListener('mouseenter', function (e) {
+            if (e.target.classList.contains('label-tag')) {
+                gsap.to(e.target, {
+                    scale: 1.05,
+                    y: -2,
+                    duration: 0.2,
+                    ease: "power2.out"
+                });
+            }
+        }, true);
+
+
+        // Sayfa yüklendiğinde ve resize olduğunda padding'i güncelle
+        window.addEventListener('load', updateMainContentPadding);
+        window.addEventListener('resize', updateMainContentPadding);
+
+
+        document.addEventListener('mouseleave', function (e) {
+            if (e.target.classList.contains('label-tag')) {
+                gsap.to(e.target, {
+                    scale: 1,
+                    y: 0,
+                    duration: 0.2,
+                    ease: "power2.out"
+                });
+            }
+        }, true);
+    </script>
+</body>
+
+</html>
