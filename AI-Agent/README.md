@@ -13,7 +13,8 @@ pip install chromadb sentence-transformers
 python prepare_aida_stream.py
 python create_vector_db.py
 ```
-ADIAROHDATA.json > prepare_aida_stream.py > AIDADATA.jsonl
+ADIAROHDATA.json > prepare_aida_stream.py > AIDADATA.json
+
 AIDADATA.jsonl > create_vector_db.py > my_local_vectordb
 
 ## Setup (lokal, ohne Docker)
